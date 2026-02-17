@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: coolify_postgres
+    environment:
+      POSTGRES_DB: coolify_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 0000
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d coolify_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - coolify_network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: birth_game_backend
+    environment:
+      DATABASE_URL: postgresql://postgres:0000@postgres:5432/coolify_db
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - coolify_network
+    volumes:
+      - ./backend:/app
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: birth_game_frontend
+    environment:
+      API_URL: http://backend:8000
+      SECRET_KEY: your-secret-key-change-in-production
+    ports:
+      - "5000:5000"
+    depends_on:
+      - backend
+    networks:
+      - coolify_network
+    volumes:
+      - ./frontend:/app
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  coolify_network:
+    driver: bridge
