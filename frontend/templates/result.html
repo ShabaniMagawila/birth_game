@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Birthday Info</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+        
+        .info-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+        
+        .user-name {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+        }
+        
+        .info-label {
+            font-weight: 500;
+            opacity: 0.9;
+        }
+        
+        .info-value {
+            font-size: 20px;
+            font-weight: bold;
+        }
+        
+        .highlight {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .highlight-text {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin: 5px;
+            transition: transform 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎉 Your Birthday Information</h1>
+        
+        <div class="info-card">
+            <div class="user-name">{{ user.first_name }} {{ user.last_name }}</div>
+            
+            <div class="info-row">
+                <span class="info-label">Date of Birth:</span>
+                <span class="info-value">{{ user.date_of_birth }}</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">Current Age:</span>
+                <span class="info-value">{{ user.age }} years old</span>
+            </div>
+            
+            <div class="highlight">
+                <div class="info-label">You were born on</div>
+                <div class="highlight-text">{{ user.birth_day }}</div>
+            </div>
+        </div>
+        
+        <a href="/" class="btn">Add Another Person</a>
+        <a href="/users" class="btn btn-secondary">View All Users</a>
+    </div>
+</body>
+</html>
