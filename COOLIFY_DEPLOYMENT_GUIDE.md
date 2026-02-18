@@ -88,11 +88,7 @@ The existing `backend/Dockerfile` should work fine with these settings.
 
 #### Environment Variables:
 ```
-DB_HOST=coolify-db
-DB_PORT=5432
-DB_USERNAME=postgres
-DB_PASSWORD=<your-database-password>
-DB_DATABASE=coolify_db
+DATABASE_URL=postgresql://postgres:<your-database-password>@coolify-db:5432/coolify_db
 PYTHON_ENV=production
 ```
 
@@ -186,15 +182,11 @@ POSTGRES_PASSWORD=<your-generated-password>
 
 ### Backend Service (FastAPI)
 ```
-DB_HOST=coolify-db
-DB_PORT=5432
-DB_USERNAME=postgres
-DB_PASSWORD=<same-as-database-password>
-DB_DATABASE=coolify_db
+DATABASE_URL=postgresql://postgres:<same-as-database-password>@coolify-db:5432/coolify_db
 PYTHON_ENV=production
 ```
 
-**Important:** The backend password must exactly match your database password!
+**Important:** Replace password with your actual database password!
 
 ### Frontend Service (Flask)
 ```

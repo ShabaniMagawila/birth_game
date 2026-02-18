@@ -76,23 +76,21 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Database configuration
-# Build from individual components (Coolify friendly)
-# Supports both DB_* and POSTGRES_* variable names
-db_host = os.getenv('DB_HOST') or os.getenv('POSTGRES_HOST') or 'localhost'
-db_port = os.getenv('DB_PORT') or os.getenv('POSTGRES_PORT') or '5432'
-db_user = os.getenv('DB_USERNAME') or os.getenv('POSTGRES_USER') or 'postgres'
-db_password = os.getenv('DB_PASSWORD') or os.getenv('POSTGRES_PASSWORD') or '0000'
-db_name = os.getenv('DB_DATABASE') or os.getenv('POSTGRES_DB') or 'coolify_db'
+# Priority: DATABASE_URL > individual DB_* variables > POSTGRES_* variables > defaults
 
-# Build the connection URL
-if all([db_host, db_port, db_user, db_password, db_name]):
+# Try DATABASE_URL first (recommended)
+DATABASE_URL = os.getenv('DATABASE_URL')
+
+if not DATABASE_URL:
+    # Fall back to building from individual environment variables
+    db_host = os.getenv('DB_HOST') or os.getenv('POSTGRES_HOST') or 'localhost'
+    db_port = os.getenv('DB_PORT') or os.getenv('POSTGRES_PORT') or '5432'
+    db_user = os.getenv('DB_USERNAME') or os.getenv('POSTGRES_USER') or 'postgres'
+    db_password = os.getenv('DB_PASSWORD') or os.getenv('POSTGRES_PASSWORD') or '0000'
+    db_name = os.getenv('DB_DATABASE') or os.getenv('POSTGRES_DB') or 'coolify_db'
+    
+    # Build the connection URL from components
     DATABASE_URL = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
-else:
-    # Fall back to explicit DATABASE_URL if provided
-    DATABASE_URL = os.getenv(
-        "DATABASE_URL",
-        f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
-    )
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -106,9 +104,9 @@ def get_db():
 ```
 
 **This approach:**
-- ✅ Uses flexible env vars (supports both `DB_*` and `POSTGRES_*` naming)
-- ✅ Falls back to sensible defaults (localhost, port 5432, etc.)
-- ✅ Supports explicit `DATABASE_URL` if provided
+- ✅ Prioritizes `DATABASE_URL` (simplest and most direct)
+- ✅ Falls back to individual DB_* or POSTGRES_* variables if DATABASE_URL not set
+- ✅ Uses sensible defaults for local development
 - ✅ Works with any naming convention
 
 ### Update `backend/main.py`
@@ -195,9 +193,14 @@ Or if uploading manually:
 
 **Click Add Environment Variable for each:**
 
-**Required Database Variables (choose one naming style):**
+**Required Database Variable (choose one option):**
 
-**Option A: Use DB_* variables (recommended for Coolify):**
+**Option A: Use DATABASE_URL (RECOMMENDED - simplest):**
+```
+DATABASE_URL=postgresql://postgres:<your-database-password>@coolify-db:5432/coolify_db
+```
+
+**Option B: Use individual DB_* variables:**
 ```
 DB_HOST=coolify-db
 DB_PORT=5432
@@ -206,7 +209,7 @@ DB_PASSWORD=<your-database-password>
 DB_DATABASE=coolify_db
 ```
 
-**Option B: Use POSTGRES_* variables (also supported):**
+**Option C: Use POSTGRES_* variables:**
 ```
 POSTGRES_HOST=coolify-db
 POSTGRES_PORT=5432
@@ -225,17 +228,19 @@ LOG_LEVEL=info
 
 **Full Environment Variables List:**
 ```env
-# Database Configuration (Required)
-# Choose ONE naming convention: DB_* or POSTGRES_*
+# Database Configuration (Required - choose ONE option)
 
-# Option A: DB_* variables (simpler, Coolify-native)
-DB_HOST=coolify-db
-DB_PORT=5432
-DB_USERNAME=postgres
-DB_PASSWORD=<your-database-password>
-DB_DATABASE=coolify_db
+# OPTION A: DATABASE_URL (RECOMMENDED - simplest)
+DATABASE_URL=postgresql://postgres:<your-database-password>@coolify-db:5432/coolify_db
 
-# Option B: POSTGRES_* variables (PostgreSQL standard)
+# OPTION B: DB_* variables (if DATABASE_URL not set)
+# DB_HOST=coolify-db
+# DB_PORT=5432
+# DB_USERNAME=postgres
+# DB_PASSWORD=<your-database-password>
+# DB_DATABASE=coolify_db
+
+# OPTION C: POSTGRES_* variables (if DATABASE_URL not set)
 # POSTGRES_HOST=coolify-db
 # POSTGRES_PORT=5432
 # POSTGRES_USER=postgres
@@ -245,12 +250,9 @@ DB_DATABASE=coolify_db
 # Application Settings (Optional)
 PYTHON_ENV=production
 LOG_LEVEL=info
-
-# Alternative: Use DATABASE_URL instead of individual variables
-# DATABASE_URL=postgresql://postgres:<password>@coolify-db:5432/coolify_db
 ```
 
-**Note:** The backend automatically detects and uses whichever variables are set. The `DB_*` naming is simpler and more intuitive for Coolify deployments.
+**Note:** The backend checks for `DATABASE_URL` first. If not set, it falls back to individual DB_* or POSTGRES_* variables.
 
 #### Health Check (Optional but Recommended)
 
@@ -440,11 +442,7 @@ Status: Should show "Running" in Coolify
 ### Environment Variables Used
 
 ```env
-DB_HOST=coolify-db
-DB_PORT=5432
-DB_USERNAME=postgres
-DB_PASSWORD=<your-database-password>
-DB_DATABASE=coolify_db
+DATABASE_URL=postgresql://postgres:<your-database-password>@coolify-db:5432/coolify_db
 PYTHON_ENV=production
 ```
 
@@ -476,12 +474,9 @@ docker run test-backend
 **Solutions**:
 1. ✅ Verify database service is deployed and running
 2. ✅ Check database service name is exactly `coolify-db`
-3. ✅ Verify all database variables are set correctly:
-   - `DB_HOST=coolify-db` (or `POSTGRES_HOST`)
-   - `DB_PORT=5432` (or `POSTGRES_PORT`)
-   - `DB_USERNAME=postgres` (or `POSTGRES_USER`)
-   - `DB_PASSWORD=<exact-match-with-database>` (or `POSTGRES_PASSWORD`)
-   - `DB_DATABASE=coolify_db` (or `POSTGRES_DB`)
+3. ✅ Verify database variable is set correctly:
+   - `DATABASE_URL=postgresql://postgres:<password>@coolify-db:5432/coolify_db`
+   - Or use DB_* or POSTGRES_* variables as fallback
 4. ✅ **Password must exactly match database password** - check for typos!
 5. ✅ Wait for database to be fully healthy before backend starts
 6. ✅ Add dependency: backend depends on `coolify-db`

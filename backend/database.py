@@ -7,23 +7,21 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Database configuration
-# Build from individual components (Coolify friendly)
-# Supports both DB_* and POSTGRES_* variable names
-db_host = os.getenv('DB_HOST') or os.getenv('POSTGRES_HOST') or 'localhost'
-db_port = os.getenv('DB_PORT') or os.getenv('POSTGRES_PORT') or '5432'
-db_user = os.getenv('DB_USERNAME') or os.getenv('POSTGRES_USER') or 'postgres'
-db_password = os.getenv('DB_PASSWORD') or os.getenv('POSTGRES_PASSWORD') or '0000'
-db_name = os.getenv('DB_DATABASE') or os.getenv('POSTGRES_DB') or 'coolify_db'
+# Priority: DATABASE_URL > individual DB_* variables > POSTGRES_* variables > defaults
 
-# Build the connection URL
-if all([db_host, db_port, db_user, db_password, db_name]):
+# Try DATABASE_URL first (recommended)
+DATABASE_URL = os.getenv('DATABASE_URL')
+
+if not DATABASE_URL:
+    # Fall back to building from individual environment variables
+    db_host = os.getenv('DB_HOST') or os.getenv('POSTGRES_HOST') or 'localhost'
+    db_port = os.getenv('DB_PORT') or os.getenv('POSTGRES_PORT') or '5432'
+    db_user = os.getenv('DB_USERNAME') or os.getenv('POSTGRES_USER') or 'postgres'
+    db_password = os.getenv('DB_PASSWORD') or os.getenv('POSTGRES_PASSWORD') or '0000'
+    db_name = os.getenv('DB_DATABASE') or os.getenv('POSTGRES_DB') or 'coolify_db'
+    
+    # Build the connection URL from components
     DATABASE_URL = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
-else:
-    # Fall back to explicit DATABASE_URL if provided
-    DATABASE_URL = os.getenv(
-        "DATABASE_URL",
-        f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
-    )
 
 # Create SQLAlchemy engine
 engine = create_engine(DATABASE_URL)
