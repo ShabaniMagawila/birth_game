@@ -159,17 +159,29 @@ if __name__ == "__main__":
 | Build Context | `backend/` | Directory to build from |
 | Image Name | `coolify-backend` | Auto-generated |
 
-#### Git/Source (if using Git)
+#### Git/Source (Recommended - Use Your GitHub Repo)
+
+**Since your code is on GitHub, use Git deployment for automatic updates:**
 
 | Setting | Value | Notes |
 |---------|-------|-------|
-| Repository URL | Your GitHub URL | The full project repo |
+| Repository URL | `https://github.com/ShabaniMagawila/birth_game.git` | Your GitHub repo |
 | Branch | `main` | Or your default branch |
 | Build Type | `Docker` | Use Dockerfile |
+| Dockerfile Path | `backend/Dockerfile` | Relative to repo root |
+| Build Context | `.` or `backend/` | Use `.` for root context |
+
+**Benefits:**
+- 🔄 Click **Redeploy** to pull latest code from GitHub
+- 📦 No manual file uploads needed
+- 🔁 Easy rollbacks to previous commits
+
+#### Alternative: Manual Upload
 
 Or if uploading manually:
 - Upload the entire project or just the backend folder
 - Ensure paths are preserved
+- You'll need to re-upload on every code change
 
 #### Environment Variables
 
@@ -264,8 +276,8 @@ ERROR: could not translate host name "coolify-db" to address
 ERROR: connection refused (postgres)
 → Solution: Database service may not be ready, wait a bit
 
-ERROR: Database URL not set
-→ Solution: Verify DATABASE_URL environment variable
+ERROR: password authentication failed for user "postgres"
+→ Solution: Verify POSTGRES_PASSWORD matches database exactly
 ```
 
 ---
@@ -308,7 +320,7 @@ curl http://<coolify-server-ip>:8001/docs
 ```python
 import requests
 
-response = requests.get("http://<coolify-server-ip>:8000/docs")
+response = requests.get("http://<coolify-server-ip>:8001/docs")
 if response.status_code == 200:
     print("✅ Backend is accessible!")
 else:
@@ -355,6 +367,7 @@ Add a test endpoint to verify the connection:
 **In `backend/main.py`:**
 
 ```python
+from fastapi import HTTPException
 from sqlalchemy import text
 from database import engine
 
@@ -365,12 +378,12 @@ async def health_check():
             conn.execute(text("SELECT 1"))
         return {"status": "healthy", "database": "connected"}
     except Exception as e:
-        return {"status": "unhealthy", "error": str(e)}, 500
+        raise HTTPException(status_code=500, detail={"status": "unhealthy", "error": str(e)})
 ```
 
 Then test:
 ```bash
-curl http://<coolify-server-ip>:8000/health
+curl http://<coolify-server-ip>:8001/health
 # Should return: {"status":"healthy","database":"connected"}
 ```
 
