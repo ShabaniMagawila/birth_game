@@ -195,11 +195,11 @@ URL: postgresql://postgres:<password>@<coolify-server-ip>:5432/coolify_db
 ### What Other Services Will Use:
 When you deploy the Backend service, set these environment variables:
 ```
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=<same-password-as-above>
-POSTGRES_HOST=coolify-db
-POSTGRES_PORT=5432
-POSTGRES_DB=coolify_db
+DB_HOST=coolify-db
+DB_PORT=5432
+DB_USERNAME=postgres
+DB_PASSWORD=<same-password-as-above>
+DB_DATABASE=coolify_db
 ```
 
 **Important:** The backend password must exactly match the database password!
