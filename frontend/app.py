@@ -7,10 +7,17 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = os.getenv("SECRET_KEY", "your-secret-key-here")
 
-# Backend API URL
-API_URL = os.getenv("API_URL", "http://localhost:8000")
+API_URL = os.getenv("API_URL")
+SECRET_KEY = os.getenv("SECRET_KEY")
+
+if not API_URL:
+    raise RuntimeError("API_URL is required. Set it in the frontend environment.")
+
+if not SECRET_KEY:
+    raise RuntimeError("SECRET_KEY is required. Set it in the frontend environment.")
+
+app.secret_key = SECRET_KEY
 
 
 @app.route('/')
