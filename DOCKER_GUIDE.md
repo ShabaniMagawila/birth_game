@@ -19,13 +19,13 @@ docker-compose up -d
 
 This will start:
 - **PostgreSQL Database** on `localhost:5432`
-- **FastAPI Backend** on `localhost:8000`
+- **FastAPI Backend** on `localhost:8001`
 - **Flask Frontend** on `localhost:5000`
 
 ### Step 3: Access the Application
 - Frontend: http://localhost:5000
-- Backend API: http://localhost:8000
-- API Docs: http://localhost:8000/docs
+- Backend API: http://localhost:8001
+- API Docs: http://localhost:8001/docs
 
 ### Step 4: View Logs
 ```bash
@@ -61,9 +61,9 @@ docker-compose down -v
 - **Health Check**: Enabled - waits for database to be ready
 
 ### FastAPI Backend
-- **Port**: 8000
-- **URL**: http://localhost:8000
-- **Docs**: http://localhost:8000/docs
+- **Port**: 8000 (container), exposed as 8001
+- **URL**: http://localhost:8001
+- **Docs**: http://localhost:8001/docs
 - **Database**: Connected to postgres service
 - **Dependencies**: Waits for PostgreSQL health check
 

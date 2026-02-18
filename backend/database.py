@@ -7,10 +7,16 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Database configuration
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql://coolify_user:coolify_password@localhost:5432/coolify_db"
-)
+# Try to build from individual components first (Coolify friendly)
+if all([os.getenv('POSTGRES_USER'), os.getenv('POSTGRES_PASSWORD'), 
+        os.getenv('POSTGRES_HOST'), os.getenv('POSTGRES_DB')]):
+    DATABASE_URL = f"postgresql://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@{os.getenv('POSTGRES_HOST')}:{os.getenv('POSTGRES_PORT', '5432')}/{os.getenv('POSTGRES_DB')}"
+else:
+    # Fall back to DATABASE_URL or local default
+    DATABASE_URL = os.getenv(
+        "DATABASE_URL",
+        "postgresql://postgres:0000@localhost:5432/coolify_db"
+    )
 
 # Create SQLAlchemy engine
 engine = create_engine(DATABASE_URL)

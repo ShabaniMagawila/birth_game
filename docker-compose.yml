@@ -29,7 +29,7 @@ services:
     environment:
       DATABASE_URL: postgresql://postgres:0000@postgres:5432/coolify_db
     ports:
-      - "8000:8000"
+      - "8001:8000"
     depends_on:
       postgres:
         condition: service_healthy
