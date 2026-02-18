@@ -2,9 +2,14 @@ from flask import Flask, render_template, request, jsonify, flash, redirect, url
 import requests
 from datetime import datetime
 import os
+import logging
 from dotenv import load_dotenv
 
 load_dotenv()
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
@@ -16,6 +21,8 @@ if not API_URL:
 
 if not SECRET_KEY:
     raise RuntimeError("SECRET_KEY is required. Set it in the frontend environment.")
+
+logger.info(f"Frontend started with API_URL: {API_URL}")
 
 app.secret_key = SECRET_KEY
 
@@ -41,6 +48,7 @@ def submit_user():
             return redirect(url_for('index'))
         
         # Send data to FastAPI backend
+        logger.info(f"Submitting user to {API_URL}/users/")
         response = requests.post(
             f"{API_URL}/users/",
             json={
@@ -52,15 +60,19 @@ def submit_user():
         
         if response.status_code == 200:
             user_data = response.json()
+            logger.info(f"User created successfully: {user_data}")
             return render_template('result.html', user=user_data)
         else:
+            logger.error(f"Backend returned status {response.status_code}: {response.text}")
             flash(f'Error: {response.text}', 'error')
             return redirect(url_for('index'))
             
-    except requests.exceptions.ConnectionError:
+    except requests.exceptions.ConnectionError as e:
+        logger.error(f"Connection error to backend: {e}")
         flash('Cannot connect to backend API. Make sure it is running!', 'error')
         return redirect(url_for('index'))
     except Exception as e:
+        logger.error(f"Unexpected error: {e}")
         flash(f'An error occurred: {str(e)}', 'error')
         return redirect(url_for('index'))
 
@@ -69,19 +81,24 @@ def submit_user():
 def list_users():
     """Display all users"""
     try:
+        logger.info(f"Fetching users from {API_URL}/users/")
         response = requests.get(f"{API_URL}/users/")
         
         if response.status_code == 200:
             users = response.json()
+            logger.info(f"Successfully fetched {len(users)} users")
             return render_template('users.html', users=users)
         else:
+            logger.error(f"Backend returned status {response.status_code}: {response.text}")
             flash('Error fetching users', 'error')
             return redirect(url_for('index'))
             
-    except requests.exceptions.ConnectionError:
+    except requests.exceptions.ConnectionError as e:
+        logger.error(f"Connection error to backend: {e}")
         flash('Cannot connect to backend API. Make sure it is running!', 'error')
         return redirect(url_for('index'))
     except Exception as e:
+        logger.error(f"Unexpected error: {e}")
         flash(f'An error occurred: {str(e)}', 'error')
         return redirect(url_for('index'))
 
