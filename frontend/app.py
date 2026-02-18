@@ -87,5 +87,5 @@ def list_users():
 
 
 if __name__ == '__main__':
-    debug_flag = os.getenv("DEBUG", "False").strip().lower() in ("1", "true", "yes")
+    debug_flag = os.getenv("DEBUG", "True").strip().lower() in ("1", "true", "yes")
     app.run(host="0.0.0.0", port=5000, debug=debug_flag)
