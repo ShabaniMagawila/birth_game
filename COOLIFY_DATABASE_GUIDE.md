@@ -165,8 +165,8 @@ Host: coolify-db
 Port: 5432
 Database: coolify_db
 User: postgres
-Password: 0000
-URL: postgresql://postgres:0000@coolify-db:5432/coolify_db
+Password: <your-coolify-generated-password>
+URL: postgresql://postgres:<password>@coolify-db:5432/coolify_db
 ```
 
 **For external access (from your machine):**
@@ -175,8 +175,8 @@ Host: <your-coolify-server-ip>
 Port: 5432
 Database: coolify_db
 User: postgres
-Password: 0000
-URL: postgresql://postgres:0000@<coolify-server-ip>:5432/coolify_db
+Password: <your-coolify-generated-password>
+URL: postgresql://postgres:<password>@<coolify-server-ip>:5432/coolify_db
 ```
 
 ---
@@ -189,14 +189,20 @@ URL: postgresql://postgres:0000@<coolify-server-ip>:5432/coolify_db
 - **Port**: `5432`
 - **Database**: `coolify_db`
 - **User**: `postgres`
-- **Password**: `0000`
+- **Password**: `<your-coolify-generated-password>`
 - **Image**: `postgres:15-alpine`
 
 ### What Other Services Will Use:
-When you deploy the Backend and Frontend services, they will reference:
+When you deploy the Backend service, set these environment variables:
 ```
-DATABASE_URL=postgresql://postgres:0000@coolify-db:5432/coolify_db
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=<same-password-as-above>
+POSTGRES_HOST=coolify-db
+POSTGRES_PORT=5432
+POSTGRES_DB=coolify_db
 ```
+
+**Important:** The backend password must exactly match the database password!
 
 The hostname `coolify-db` works automatically because Coolify creates an internal network for services in the same project.
 

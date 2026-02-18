@@ -63,19 +63,29 @@ Should contain all Python dependencies:
 
 ## Step 2: Prepare Backend Configuration
 
-### Update `backend/database.py`
+### Backend `database.py` Configuration
 
-Ensure your database connection uses the `DATABASE_URL` environment variable:
+Your `backend/database.py` is already configured to support Coolify deployment. It automatically builds the database URL from individual environment variables:
 
 ```python
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from dotenv import load_dotenv
 
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql://postgres:0000@localhost:5432/coolify_db"
-)
+load_dotenv()
+
+# Database configuration
+# Try to build from individual components first (Coolify friendly)
+if all([os.getenv('POSTGRES_USER'), os.getenv('POSTGRES_PASSWORD'), 
+        os.getenv('POSTGRES_HOST'), os.getenv('POSTGRES_DB')]):
+    DATABASE_URL = f"postgresql://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@{os.getenv('POSTGRES_HOST')}:{os.getenv('POSTGRES_PORT', '5432')}/{os.getenv('POSTGRES_DB')}"
+else:
+    # Fall back to DATABASE_URL or local default
+    DATABASE_URL = os.getenv(
+        "DATABASE_URL",
+        "postgresql://postgres:0000@localhost:5432/coolify_db"
+    )
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -87,6 +97,11 @@ def get_db():
     finally:
         db.close()
 ```
+
+**This approach:**
+- ✅ Uses individual `POSTGRES_*` env vars when available (Coolify-friendly)
+- ✅ Falls back to `DATABASE_URL` if set
+- ✅ Uses local dev defaults as last resort
 
 ### Update `backend/main.py`
 
@@ -160,33 +175,42 @@ Or if uploading manually:
 
 **Click Add Environment Variable for each:**
 
+**Required Database Variables:**
 ```
-DATABASE_URL=postgresql://postgres:0000@coolify-db:5432/coolify_db
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=<your-database-password>
+POSTGRES_HOST=coolify-db
+POSTGRES_PORT=5432
+POSTGRES_DB=coolify_db
 ```
 
-**Additional (Optional):**
+**Replace `<your-database-password>`** with the exact password from your `coolify-db` service.
+
+**Optional Application Settings:**
 ```
 PYTHON_ENV=production
 LOG_LEVEL=info
-API_URL=http://coolify-backend:8000
 ```
 
 **Full Environment Variables List:**
 ```env
-# Database Configuration
-DATABASE_URL=postgresql://postgres:0000@coolify-db:5432/coolify_db
+# Database Configuration (Required)
+# These must match your database service settings
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=<your-database-password>
+POSTGRES_HOST=coolify-db
+POSTGRES_PORT=5432
+POSTGRES_DB=coolify_db
 
-# Application Settings
+# Application Settings (Optional)
 PYTHON_ENV=production
 LOG_LEVEL=info
 
-# API Configuration
-API_HOST=0.0.0.0
-API_PORT=8000
-
-# CORS Settings (update for production)
-ALLOWED_ORIGINS=http://localhost:5000,http://coolify-frontend:5000
+# Alternative: Use DATABASE_URL instead of individual variables
+# DATABASE_URL=postgresql://postgres:<password>@coolify-db:5432/coolify_db
 ```
+
+**Note:** The backend automatically builds the database connection URL from the individual `POSTGRES_*` variables. This is more Coolify-friendly than manually constructing the `DATABASE_URL`.
 
 #### Health Check (Optional but Recommended)
 
@@ -320,7 +344,8 @@ The backend should establish a connection to the database on startup.
 
 **Or if there's an error:**
 ```
-❌ ERROR: Connection failed to postgresql://postgres:0000@coolify-db:5432/coolify_db
+❌ ERROR: Connection failed to database
+❌ ERROR: password authentication failed for user "postgres"
 ```
 
 ### Test Database Connectivity (Optional)
@@ -374,7 +399,11 @@ Status: Should show "Running" in Coolify
 ### Environment Variables Used
 
 ```env
-DATABASE_URL=postgresql://postgres:0000@coolify-db:5432/coolify_db
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=<your-database-password>
+POSTGRES_HOST=coolify-db
+POSTGRES_PORT=5432
+POSTGRES_DB=coolify_db
 PYTHON_ENV=production
 ```
 
@@ -401,14 +430,21 @@ docker run test-backend
 
 ### Issue: Can't Connect to Database
 
-**Error**: `could not translate host name "coolify-db" to address`
+**Error**: `could not translate host name "coolify-db" to address` or `password authentication failed`
 
 **Solutions**:
 1. ✅ Verify database service is deployed and running
 2. ✅ Check database service name is exactly `coolify-db`
-3. ✅ Verify `DATABASE_URL` environment variable uses correct hostname
-4. ✅ Wait for database to be fully healthy before backend starts
-5. ✅ Add dependency: backend depends on `coolify-db`
+3. ✅ Verify all `POSTGRES_*` environment variables are set correctly:
+   - `POSTGRES_USER=postgres`
+   - `POSTGRES_PASSWORD=<exact-match-with-database>`
+   - `POSTGRES_HOST=coolify-db`
+   - `POSTGRES_PORT=5432`
+   - `POSTGRES_DB=coolify_db`
+4. ✅ **Password must exactly match database password** - check for typos!
+5. ✅ Wait for database to be fully healthy before backend starts
+6. ✅ Add dependency: backend depends on `coolify-db`
+7. ✅ After updating env vars, click **Update** then **Restart**/**Redeploy**
 
 ### Issue: API Endpoints Return 500 Error
 
